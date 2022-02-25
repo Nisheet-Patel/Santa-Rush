@@ -5,13 +5,16 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.is_running = True
         self.is_jumping = False
+        self.is_sliding = False
 
         self.sprite_count = 0
         self.current_santa_sprite = 0
         self.santa_running_sprites = []
         self.santa_jump_sprites = []
+        self.santa_slide_sprites = []
+
         # load santa running images
-        for i in range(1,11):
+        for i in range(1,12):
             self.santa_running_sprites.append(
                 pygame.image.load(f'assets\\images\\santa\\Run ({i}).png')
             )
@@ -20,6 +23,12 @@ class Player(pygame.sprite.Sprite):
         for i in range(1,17):
             self.santa_jump_sprites.append(
                 pygame.image.load(f'assets\\images\\santa\\Jump ({i}).png')
+            )
+
+        # Load santa slide images
+        for i in range(1,12):
+            self.santa_slide_sprites.append(
+                pygame.image.load(f'assets\\images\\santa\\Slide ({i}).png')
             )
 
         self.image = self.santa_running_sprites[self.current_santa_sprite]
@@ -38,6 +47,12 @@ class Player(pygame.sprite.Sprite):
             self.is_running = False
             self.current_santa_sprite = 0
             self.speed = 0.9
+        if pressed_keys[pygame.K_DOWN]:
+            self.is_sliding = True
+            self.is_running = False
+        else:
+            self.is_sliding = False
+            self.is_running = True
 
         self.current_santa_sprite += self.speed
 
@@ -51,6 +66,10 @@ class Player(pygame.sprite.Sprite):
         elif self.is_jumping:
             self.sprite_count = 15
             self.image = self.santa_jump_sprites[int(self.current_santa_sprite)]
+        
+        elif self.is_sliding:
+            self.sprite_count = 10
+            self.image = self.santa_slide_sprites[int(self.current_santa_sprite)]
 
         # Gravity
         self.gravity += 2  # Fall speed
