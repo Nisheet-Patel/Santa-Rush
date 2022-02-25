@@ -1,4 +1,5 @@
 import pygame
+import random
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -37,12 +38,12 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = 560
 
         self.gravity = 0
-        self.speed = 0.3
+        self.speed = 0.4
 
     def update(self,pressed_keys):
 
         if pressed_keys[pygame.K_UP] and self.rect.y == 560:
-            self.gravity -= 22
+            self.gravity -= 20
             self.is_jumping = True
             self.is_running = False
             self.current_santa_sprite = 0
@@ -72,7 +73,7 @@ class Player(pygame.sprite.Sprite):
             self.image = self.santa_slide_sprites[int(self.current_santa_sprite)]
 
         # Gravity
-        self.gravity += 2  # Fall speed
+        self.gravity += 1  # Fall speed
         self.rect.y += self.gravity
 
         if self.rect.y >= 560:
@@ -81,7 +82,32 @@ class Player(pygame.sprite.Sprite):
 
             self.is_jumping = False
             self.is_running = True
-            self.speed = 0.3
+            self.speed = 0.4
+
+# Load all Hurdel images
+hurdel_sprites = [
+    pygame.image.load('assets\\images\\Hurdle\\SnowMan.png'),
+    pygame.image.load('assets\\images\\Hurdle\\IceBox.png'),
+    pygame.image.load('assets\\images\\Hurdle\\Stone.png'),
+    pygame.image.load('assets\\images\\Hurdle\\Crystal.png')
+]
+
+class Hurdle(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+        self.image = hurdel_sprites[random.randint(0,3)]
+        self.rect = self.image.get_rect()
+        self.rect.bottom = 672
+        self.rect.x = 1024
+
+        self.speed = 5.5
+
+    def update(self):
+        if self.rect.x > -100:
+            self.rect.x -= self.speed
+        else:
+            self.kill()
 
 pygame.init()
 
@@ -94,11 +120,15 @@ background = pygame.image.load('assets\\images\\BG.png')
 # Setup
 screen = pygame.display.set_mode((screen_width,screen_height))
 clock = pygame.time.Clock()
-
 # sprites
 all_sprites = pygame.sprite.Group()
 player = Player()
 all_sprites.add(player)
+all_hurdles = pygame.sprite.Group()
+# custom event for adding a new Hurdle
+ADDHURDLE = pygame.USEREVENT + 1
+pygame.time.set_timer(ADDHURDLE, 2000)
+
 
 running = True
 while running:
@@ -106,16 +136,23 @@ while running:
         if event.type == pygame.QUIT:
             pygame.quit()
             running = False
-    
+
+        elif event.type == ADDHURDLE:
+            if len(all_sprites)-1 < 2:  # max 2 hurdle on screen
+                new_hurdle = Hurdle()
+                new_hurdle.rect.x += random.randint(20, 500) 
+                all_sprites.add(new_hurdle)
+                all_hurdles.add(new_hurdle)
+
     # Get user key pressed 
     pressed_keys = pygame.key.get_pressed()
     player.update(pressed_keys)
+    all_hurdles.update()
 
     screen.blit(background, (0,0))
     screen.blit(snow_land, (0,672))
     
     all_sprites.draw(screen)
     
-
     pygame.display.flip()
     clock.tick(60)
