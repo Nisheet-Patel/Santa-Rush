@@ -3,40 +3,66 @@ import pygame
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
+        self.is_running = True
+        self.is_jumping = False
+
+        self.sprite_count = 0
         self.current_santa_sprite = 0
-        self.santa_sprites = []
-        # load santa images
+        self.santa_running_sprites = []
+        self.santa_jump_sprites = []
+        # load santa running images
         for i in range(1,11):
-            self.santa_sprites.append(
+            self.santa_running_sprites.append(
                 pygame.image.load(f'assets\\images\\santa\\Run ({i}).png')
             )
 
-        self.image = self.santa_sprites[self.current_santa_sprite]
+        # Load santa jump images
+        for i in range(1,17):
+            self.santa_jump_sprites.append(
+                pygame.image.load(f'assets\\images\\santa\\Jump ({i}).png')
+            )
+
+        self.image = self.santa_running_sprites[self.current_santa_sprite]
         self.rect = self.image.get_rect()
         self.rect.x = 200
         self.rect.y = 560
 
         self.gravity = 0
+        self.speed = 0.3
 
     def update(self,pressed_keys):
-        self.current_santa_sprite += 0.3
-
-        if self.current_santa_sprite >= 10:
-            self.current_santa_sprite = 0
-
-        self.image = self.santa_sprites[int(self.current_santa_sprite)]
 
         if pressed_keys[pygame.K_UP] and self.rect.y == 560:
-            self.gravity -= 20
+            self.gravity -= 22
+            self.is_jumping = True
+            self.is_running = False
+            self.current_santa_sprite = 0
+            self.speed = 0.9
+
+        self.current_santa_sprite += self.speed
+
+        if self.current_santa_sprite >= self.sprite_count:
+            self.current_santa_sprite = 0
+
+        if self.is_running:
+            self.sprite_count = 10
+            self.image = self.santa_running_sprites[int(self.current_santa_sprite)]
             
+        elif self.is_jumping:
+            self.sprite_count = 15
+            self.image = self.santa_jump_sprites[int(self.current_santa_sprite)]
+
         # Gravity
         self.gravity += 2  # Fall speed
         self.rect.y += self.gravity
 
-        print("gravity: ",self.gravity)
         if self.rect.y >= 560:
             self.gravity = 0
             self.rect.y = 560
+
+            self.is_jumping = False
+            self.is_running = True
+            self.speed = 0.3
 
 pygame.init()
 
