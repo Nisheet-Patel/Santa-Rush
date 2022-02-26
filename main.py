@@ -1,5 +1,6 @@
 import pygame
 import random
+import debug
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -8,6 +9,7 @@ class Player(pygame.sprite.Sprite):
         self.is_jumping = False
         self.is_sliding = False
 
+        self.land = 565
         self.sprite_count = 0
         self.current_santa_sprite = 0
         self.santa_running_sprites = []
@@ -34,26 +36,25 @@ class Player(pygame.sprite.Sprite):
 
         self.image = self.santa_running_sprites[self.current_santa_sprite]
         self.rect = self.image.get_rect()
-        self.rect.x = 200
-        self.rect.y = 560
+        # player x,y
+        self.rect.x = 300
+        self.rect.y = self.land
 
         self.gravity = 0
         self.speed = 0.4
 
     def update(self,pressed_keys):
-
-        if pressed_keys[pygame.K_UP] and self.rect.y == 560:
-            self.gravity -= 20
+        if pressed_keys[pygame.K_UP] and self.rect.y == self.land:
+            self.gravity -= 23
             self.is_jumping = True
             self.is_running = False
             self.current_santa_sprite = 0
-            self.speed = 0.9
-        if pressed_keys[pygame.K_DOWN]:
+            self.speed = 0.5
+        elif pressed_keys[pygame.K_DOWN] and self.is_running:
             self.is_sliding = True
             self.is_running = False
         else:
             self.is_sliding = False
-            self.is_running = True
 
         self.current_santa_sprite += self.speed
 
@@ -61,6 +62,7 @@ class Player(pygame.sprite.Sprite):
             self.current_santa_sprite = 0
 
         if self.is_running:
+            self.land = 565
             self.sprite_count = 10
             self.image = self.santa_running_sprites[int(self.current_santa_sprite)]
             
@@ -71,14 +73,18 @@ class Player(pygame.sprite.Sprite):
         elif self.is_sliding:
             self.sprite_count = 10
             self.image = self.santa_slide_sprites[int(self.current_santa_sprite)]
-
+            self.land = 600
+            self.rect.y = self.land
+        # Debug
+        # print(self.is_running,self.is_jumping,self.is_sliding)
+        
         # Gravity
         self.gravity += 1  # Fall speed
         self.rect.y += self.gravity
 
-        if self.rect.y >= 560:
+        if self.rect.y >= self.land:
             self.gravity = 0
-            self.rect.y = 560
+            self.rect.y = self.land
 
             self.is_jumping = False
             self.is_running = True
@@ -89,21 +95,47 @@ hurdel_sprites = [
     pygame.image.load('assets\\images\\Hurdle\\SnowMan.png'),
     pygame.image.load('assets\\images\\Hurdle\\IceBox.png'),
     pygame.image.load('assets\\images\\Hurdle\\Stone.png'),
-    pygame.image.load('assets\\images\\Hurdle\\Crystal.png')
+    pygame.image.load('assets\\images\\Hurdle\\Crystal.png'),
+    [
+        pygame.image.load('assets\\images\\Hurdle\\snowball\\snowball_01.png'),
+        pygame.image.load('assets\\images\\Hurdle\\snowball\\snowball_02.png'),
+        pygame.image.load('assets\\images\\Hurdle\\snowball\\snowball_03.png'),
+        pygame.image.load('assets\\images\\Hurdle\\snowball\\snowball_04.png'),
+        pygame.image.load('assets\\images\\Hurdle\\snowball\\snowball_05.png'),
+        pygame.image.load('assets\\images\\Hurdle\\snowball\\snowball_06.png')
+    ]
 ]
 
 class Hurdle(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-
-        self.image = hurdel_sprites[random.randint(0,3)]
+        self.current_sprite = 0  # For snow ball animation
+        self.sc = random.randint(0,4)
+        
+        if self.sc != 4:
+            self.image = hurdel_sprites[self.sc]
+        else:
+            self.image = hurdel_sprites[self.sc][self.current_sprite]
+        
         self.rect = self.image.get_rect()
-        self.rect.bottom = 672
+        if self.sc == 4:
+            self.rect.bottom = 590
+        else:
+            self.rect.bottom = 672
         self.rect.x = 1024
 
         self.speed = 5.5
 
     def update(self):
+        if self.sc == 4:
+            self.current_sprite += 0.2  # animation speed
+            if self.current_sprite > 5:
+                self.current_sprite = 0
+            self.image = hurdel_sprites[self.sc][int(self.current_sprite)]
+            # Follow Player
+            if player.is_jumping and self.rect.x > player.rect.x:
+                self.rect.y = player.rect.y
+        
         if self.rect.x > -100:
             self.rect.x -= self.speed
         else:
@@ -143,7 +175,8 @@ while running:
                 new_hurdle.rect.x += random.randint(20, 500) 
                 all_sprites.add(new_hurdle)
                 all_hurdles.add(new_hurdle)
-
+            
+    pygame.sprite.spritecollide(player, all_hurdles, dokill=True)
     # Get user key pressed 
     pressed_keys = pygame.key.get_pressed()
     player.update(pressed_keys)
@@ -153,6 +186,6 @@ while running:
     screen.blit(snow_land, (0,672))
     
     all_sprites.draw(screen)
-    
+    # debug.draw_mid_points(screen, player)
     pygame.display.flip()
     clock.tick(60)

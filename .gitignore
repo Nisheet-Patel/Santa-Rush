@@ -4,3 +4,4 @@ Scripts
 pyvenv.cfg
 Temp
 include
+__pycache__
