@@ -1,6 +1,7 @@
 import pygame
 import random
 import debug
+from Text import TEXT
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -143,6 +144,12 @@ class Hurdle(pygame.sprite.Sprite):
 
 pygame.init()
 
+GAME = {
+    'animation': False,
+    'animation_speed': 0,
+    'status': 'main_menu',
+    'player_select': ''
+}
 # Variables
 screen_width = 1024
 screen_height = 800
@@ -161,9 +168,18 @@ all_hurdles = pygame.sprite.Group()
 ADDHURDLE = pygame.USEREVENT + 1
 pygame.time.set_timer(ADDHURDLE, 2000)
 
+# Text For Menu
+santa_rush_title = TEXT("Santa Rush", 'snowfont', (255,255,255))
+play_title = TEXT("Play", 'yolissa', (255,255,255))
+credits_title = TEXT("Credits", 'yolissa', (255,255,255))
+Exit_title = TEXT("Exit", 'yolissa', (255,255,255))
+# Defalut Location of Text
+santa_rush_title.textRect.center = (screen_width/2, 100)
+play_title.textRect.center = (screen_width/2, 300)
+credits_title.textRect.center = (screen_width/2, 360)
+Exit_title.textRect.center = (screen_width/2, 420)
 
-running = True
-while running:
+def Main_Game():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -176,9 +192,15 @@ while running:
                 all_sprites.add(new_hurdle)
                 all_hurdles.add(new_hurdle)
             
-    pygame.sprite.spritecollide(player, all_hurdles, dokill=True)
+    if pygame.sprite.spritecollide(player, all_hurdles, dokill=True):
+        GAME['status'] = 'main_menu'
     # Get user key pressed 
     pressed_keys = pygame.key.get_pressed()
+    if pressed_keys[pygame.K_p]:    # Pause Game
+        GAME['animation_speed'] = 0
+        GAME['player_select'] = 'menu'
+        GAME['animation'] = True
+        GAME['status'] = 'main_menu'
     player.update(pressed_keys)
     all_hurdles.update()
 
@@ -188,4 +210,52 @@ while running:
     all_sprites.draw(screen)
     # debug.draw_mid_points(screen, player)
     pygame.display.flip()
+
+def Main_Menu():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mpos = pygame.mouse.get_pos()
+            if play_title.textRect.collidepoint(mpos):
+                GAME['animation'] = True
+                GAME['player_select'] = 'play'
+
+    screen.blit(background, (0,0))
+
+    if GAME['animation']:
+        if GAME['player_select'] == "menu":
+            GAME['animation_speed'] += -2
+            if play_title.textRect.centerx >= (screen_width/2):
+                GAME['animation'] = False
+                GAME['animation_speed'] = 0
+        else:
+            GAME['animation_speed'] += 2
+            if play_title.textRect.centerx < -30:
+                GAME['animation'] = False
+                if GAME['player_select'] == 'play':
+                    GAME['status'] = 'main_game'
+        
+        santa_rush_title.textRect.centery -= GAME['animation_speed']
+        play_title.textRect.centerx -= GAME['animation_speed']
+        credits_title.textRect.centerx += GAME['animation_speed']
+        Exit_title.textRect.centerx -= GAME['animation_speed']
+        # if y > 672: 
+        #     y -= 5
+        #     screen.blit(snow_land, (0,y))
+
+    santa_rush_title.update(screen)
+    play_title.update(screen)
+    credits_title.update(screen)
+    Exit_title.update(screen)
+    pygame.display.flip()
+
+running = True
+while running:
+    if GAME['status'] == 'main_menu':
+        Main_Menu()
+    elif GAME['status'] == 'main_game':
+        Main_Game()
+
     clock.tick(60)
