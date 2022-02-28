@@ -142,6 +142,21 @@ class Hurdle(pygame.sprite.Sprite):
         else:
             self.kill()
 
+class Gift(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load('assets\\images\\gift-45px.png')
+        self.rect = self.image.get_rect()
+        self.rect.x = 1024
+        self.rect.bottom = 672
+
+        self.speed = 5.5
+    def update(self):
+        if self.rect.x > -100:
+            self.rect.x -= self.speed
+        else:
+            self.kill()
+
 pygame.init()
 
 GAME = {
@@ -164,9 +179,10 @@ all_sprites = pygame.sprite.Group()
 player = Player()
 all_sprites.add(player)
 all_hurdles = pygame.sprite.Group()
+all_gifts = pygame.sprite.Group()
 # custom event for adding a new Hurdle
 ADDHURDLE = pygame.USEREVENT + 1
-pygame.time.set_timer(ADDHURDLE, 2000)
+pygame.time.set_timer(ADDHURDLE, 5000)
 # Color
 WHITE = (255,255,255)
 
@@ -201,12 +217,19 @@ def Main_Game():
             running = False
 
         elif event.type == ADDHURDLE:
-            if len(all_sprites)-1 < 2:  # max 2 hurdle on screen
-                new_hurdle = Hurdle()
-                new_hurdle.rect.x += random.randint(20, 500) 
-                all_sprites.add(new_hurdle)
-                all_hurdles.add(new_hurdle)
-            
+            # Generate hurdles
+            hurdle = Hurdle()
+            hurdle.rect.x += random.randint(0,128) 
+            all_hurdles.add(hurdle)
+            all_sprites.add(hurdle)
+            # generate Gifts
+            for pos in [[256,384],[384,512],[512,640]]:    
+                if random.random() < 0.3:
+                    gift = Gift()
+                    gift.rect.x += random.randint(pos[0],pos[1])
+                    all_sprites.add(gift)
+                    all_gifts.add(gift)
+
     if pygame.sprite.spritecollide(player, all_hurdles, dokill=True):
         GAME['state'] = 'gameover'
         GAME['player_select'] = 'gameover'
@@ -221,7 +244,7 @@ def Main_Game():
         GAME['state'] = 'pause'
     player.update(pressed_keys)
     all_hurdles.update()
-
+    all_gifts.update()
     screen.blit(background, (0,0))
     screen.blit(snow_land, (0,672))
     
