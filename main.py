@@ -147,7 +147,7 @@ pygame.init()
 GAME = {
     'animation': False,
     'animation_speed': 0,
-    'status': 'main_menu',
+    'state': 'main_menu',
     'player_select': ''
 }
 # Variables
@@ -167,17 +167,32 @@ all_hurdles = pygame.sprite.Group()
 # custom event for adding a new Hurdle
 ADDHURDLE = pygame.USEREVENT + 1
 pygame.time.set_timer(ADDHURDLE, 2000)
+# Color
+WHITE = (255,255,255)
 
-# Text For Menu
-santa_rush_title = TEXT("Santa Rush", 'snowfont', (255,255,255))
-play_title = TEXT("Play", 'yolissa', (255,255,255))
-credits_title = TEXT("Credits", 'yolissa', (255,255,255))
-Exit_title = TEXT("Exit", 'yolissa', (255,255,255))
+
+# Text For Menus
+santa_rush_title = TEXT("Santa Rush", 'snowfont', WHITE)
+play_title = TEXT("Play", 'yolissa', WHITE)
+credits_title = TEXT("Credits", 'yolissa', WHITE)
+Exit_title = TEXT("Exit", 'yolissa', WHITE)
+Gameover_title = TEXT("Gameover", 'snowfont', WHITE)
+play_again_title = TEXT("Play Again", 'yolissa', WHITE)
+main_menu_title = TEXT("Main Menu", 'yolissa', WHITE)
+pause_title = TEXT('Pause', 'snowfont', WHITE)
+resume_title = TEXT('Resume', 'yolissa', WHITE)
+restart_title = TEXT('Restart', 'yolissa', WHITE)
 # Defalut Location of Text
 santa_rush_title.textRect.center = (screen_width/2, 100)
 play_title.textRect.center = (screen_width/2, 300)
 credits_title.textRect.center = (screen_width/2, 360)
 Exit_title.textRect.center = (screen_width/2, 420)
+Gameover_title.textRect.center = (screen_width/2, -452)
+play_again_title.textRect.center = (-40,350)
+main_menu_title.textRect.center = (1064, 420)
+pause_title.textRect.center = (screen_width/2,-452)
+resume_title.textRect.center = (1062,350)
+restart_title.textRect.center = (-40,420)
 
 def Main_Game():
     for event in pygame.event.get():
@@ -193,14 +208,17 @@ def Main_Game():
                 all_hurdles.add(new_hurdle)
             
     if pygame.sprite.spritecollide(player, all_hurdles, dokill=True):
-        GAME['status'] = 'main_menu'
+        GAME['state'] = 'gameover'
+        GAME['player_select'] = 'gameover'
+        GAME['animation_speed'] = 0
+        GAME['animation'] = True
     # Get user key pressed 
     pressed_keys = pygame.key.get_pressed()
     if pressed_keys[pygame.K_p]:    # Pause Game
         GAME['animation_speed'] = 0
-        GAME['player_select'] = 'menu'
+        GAME['player_select'] = 'pause'
         GAME['animation'] = True
-        GAME['status'] = 'main_menu'
+        GAME['state'] = 'pause'
     player.update(pressed_keys)
     all_hurdles.update()
 
@@ -221,7 +239,9 @@ def Main_Menu():
             if play_title.textRect.collidepoint(mpos):
                 GAME['animation'] = True
                 GAME['player_select'] = 'play'
-
+            if Exit_title.textRect.collidepoint(mpos):
+                pygame.quit()
+                running = False
     screen.blit(background, (0,0))
 
     if GAME['animation']:
@@ -235,7 +255,7 @@ def Main_Menu():
             if play_title.textRect.centerx < -30:
                 GAME['animation'] = False
                 if GAME['player_select'] == 'play':
-                    GAME['status'] = 'main_game'
+                    GAME['state'] = 'main_game'
         
         santa_rush_title.textRect.centery -= GAME['animation_speed']
         play_title.textRect.centerx -= GAME['animation_speed']
@@ -251,11 +271,100 @@ def Main_Menu():
     Exit_title.update(screen)
     pygame.display.flip()
 
+def Gameover_Menu():
+    main_menu_title.textRect.centery = 420
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mpos = pygame.mouse.get_pos()
+            if play_again_title.textRect.collidepoint(mpos):
+                GAME['animation'] = True
+                GAME['player_select'] = 'play_again'
+            elif main_menu_title.textRect.collidepoint(mpos):
+                GAME['animation'] = True
+                GAME['player_select'] = 'menu'    
+    screen.blit(background, (0,0))
+
+    if GAME['animation']:
+        if GAME['player_select'] == "gameover":
+            GAME['animation_speed'] += -2
+            if play_again_title.textRect.centerx >= (screen_width/2):
+                GAME['animation'] = False
+                GAME['animation_speed'] = 0
+        else:
+            GAME['animation_speed'] += 2
+            if play_again_title.textRect.centerx < -30:
+                GAME['animation'] = False
+                if GAME['player_select'] == 'play_again':
+                    GAME['state'] = 'main_game'
+                elif GAME['player_select'] == 'menu':
+                    GAME['state'] = 'main_menu'
+                    GAME['animation'] = True
+                    GAME['animation_speed'] = 0
+
+    Gameover_title.textRect.centery -= GAME['animation_speed']
+    play_again_title.textRect.centerx -= GAME['animation_speed']
+    main_menu_title.textRect.centerx += GAME['animation_speed']
+
+    Gameover_title.update(screen)
+    play_again_title.update(screen)
+    main_menu_title.update(screen)
+    pygame.display.flip()
+
+def Pause_Menu():
+    main_menu_title.textRect.centery = 490
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mpos = pygame.mouse.get_pos()
+            if resume_title.textRect.collidepoint(mpos):
+                GAME['animation'] = True
+                GAME['player_select'] = 'resume'
+            elif main_menu_title.textRect.collidepoint(mpos):
+                GAME['animation'] = True
+                GAME['player_select'] = 'menu'
+    screen.blit(background, (0,0))
+
+    if GAME['animation']:
+        if GAME['player_select'] == "pause":
+            GAME['animation_speed'] += -2
+            if restart_title.textRect.centerx >= (screen_width/2):
+                GAME['animation'] = False
+                GAME['animation_speed'] = 0
+        else:
+            GAME['animation_speed'] += 2
+            if restart_title.textRect.centerx < -30:
+                GAME['animation'] = False
+                if GAME['player_select'] == 'resume':
+                    GAME['state'] = 'main_game'
+                elif GAME['player_select'] == 'menu':
+                    GAME['state'] = 'main_menu'
+                    GAME['animation'] = True
+                    GAME['animation_speed'] = 0
+    
+    pause_title.textRect.centery -= GAME['animation_speed']
+    resume_title.textRect.centerx += GAME['animation_speed']
+    restart_title.textRect.centerx -= GAME['animation_speed']
+    main_menu_title.textRect.centerx += GAME['animation_speed']
+
+    pause_title.update(screen)
+    resume_title.update(screen)
+    restart_title.update(screen)
+    main_menu_title.update(screen)
+    pygame.display.flip()
+
 running = True
 while running:
-    if GAME['status'] == 'main_menu':
+    if GAME['state'] == 'main_menu':
         Main_Menu()
-    elif GAME['status'] == 'main_game':
+    elif GAME['state'] == 'main_game':
         Main_Game()
-
+    elif GAME['state'] == 'gameover':
+        Gameover_Menu()
+    elif GAME['state'] == 'pause':
+        Pause_Menu()
     clock.tick(60)
