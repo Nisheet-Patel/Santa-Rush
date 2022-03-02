@@ -11,7 +11,7 @@
 
 ![main](https://user-images.githubusercontent.com/62321150/156355190-f5f53809-1a5f-40fb-a4c7-45e9b1537ff2.png)
   <p align="center">
-    <a href="">View Demo</a>
+    <a href="https://youtu.be/fS7nbAR46Do">View Demo</a>
     ·
     <a href="https://github.com/NisheetNakrani/Santa-Rush/issues">Report Bug</a>
   </p>
