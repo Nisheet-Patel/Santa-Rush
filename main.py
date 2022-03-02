@@ -206,6 +206,8 @@ pause_title = TEXT('Pause', fontloc='snowfont', size=100)
 resume_title = TEXT('Resume')
 restart_title = TEXT('Restart')
 score_count = TEXT(f"{GAME['score']}", fontloc='shepherd')
+t1 = TEXT('Created by')
+t2 = TEXT('Nisheet Patel',fontloc='snowfont',size=100)
 # Defalut Location of Text
 santa_rush_title.txt_rect.center = (screen_width/2, 100)
 play_title.txt_rect.center = (screen_width/2, 300)
@@ -219,6 +221,8 @@ resume_title.txt_rect.center = (1062,350)
 restart_title.txt_rect.center = (-40,420)
 score_count.txt_rect.x = 50
 score_count.txt_rect.y = 13
+t1.txt_rect.center = (screen_width/4,-302)
+t2.txt_rect.center = (screen_width/2, -202)
 
 def Main_Game():
     for event in pygame.event.get():
@@ -285,6 +289,9 @@ def Main_Menu():
             if Exit_title.txt_rect.collidepoint(mpos):
                 pygame.quit()
                 running = False
+            elif credits_title.txt_rect.collidepoint(mpos):
+                GAME['animation'] = True
+                GAME['player_select'] = 'credits'
     screen.blit(background, (0,0))
 
     if GAME['animation']:
@@ -299,6 +306,10 @@ def Main_Menu():
                 GAME['animation'] = False
                 if GAME['player_select'] == 'play':
                     GAME['state'] = 'main_game'
+                elif GAME['player_select'] == 'credits':
+                    GAME['state'] = 'credits'
+                    GAME['animation'] = True
+                    GAME['animation_speed'] = 0
         
         santa_rush_title.txt_rect.centery -= GAME['animation_speed']
         play_title.txt_rect.centerx -= GAME['animation_speed']
@@ -400,6 +411,43 @@ def Pause_Menu():
     main_menu_title.draw(screen)
     pygame.display.flip()
 
+def credits():
+    main_menu_title.txt_rect.centery = 730
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mpos = pygame.mouse.get_pos()
+            if main_menu_title.txt_rect.collidepoint(mpos):
+                GAME['animation'] = True
+                GAME['player_select'] = 'menu'
+    
+    if GAME['animation']:
+        if GAME['player_select'] == "credits":
+            GAME['animation_speed'] += -2
+            if main_menu_title.txt_rect.centerx <= (screen_width/2):
+                GAME['animation'] = False
+                GAME['animation_speed'] = 0
+        else:
+            GAME['animation_speed'] += 2
+            if main_menu_title.txt_rect.centerx > (screen_width):
+                GAME['animation'] = False
+                GAME['animation_speed'] = 0
+                if GAME['player_select'] == 'menu':
+                    GAME['state'] = 'main_menu'
+                    GAME['animation'] = True
+                    GAME['animation_speed'] = 0
+    
+    t1.txt_rect.centery -= GAME['animation_speed']
+    t2.txt_rect.centery -= GAME['animation_speed']
+    main_menu_title.txt_rect.centerx += GAME['animation_speed']
+    screen.blit(background, (0,0))
+    t1.draw(screen)
+    t2.draw(screen)
+    main_menu_title.draw(screen)
+    pygame.display.flip()
+
 running = True
 while running:
     if GAME['state'] == 'main_menu':
@@ -410,4 +458,6 @@ while running:
         Gameover_Menu()
     elif GAME['state'] == 'pause':
         Pause_Menu()
+    elif GAME['state'] == 'credits':
+        credits()
     clock.tick(60)
