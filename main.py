@@ -91,6 +91,8 @@ class Player(pygame.sprite.Sprite):
             self.is_running = True
             self.speed = 0.4
 
+    def selfkill(self):
+        pass
 # Load all Hurdel images
 hurdel_sprites = [
     pygame.image.load('assets\\images\\Hurdle\\SnowMan.png'),
@@ -141,6 +143,9 @@ class Hurdle(pygame.sprite.Sprite):
             self.rect.x -= self.speed
         else:
             self.kill()
+    
+    def selfkill(self):
+        self.kill()
 
 class Gift(pygame.sprite.Sprite):
     def __init__(self):
@@ -163,6 +168,9 @@ class Gift(pygame.sprite.Sprite):
         GAME['score'] += 1
         score_count.txt = f"{GAME['score']}"
         score_count.update()
+    
+    def selfkill(self):
+        self.kill()
 
 pygame.init()
 
@@ -223,6 +231,19 @@ score_count.txt_rect.x = 50
 score_count.txt_rect.y = 13
 t1.txt_rect.center = (screen_width/4,-302)
 t2.txt_rect.center = (screen_width/2, -202)
+
+# Core Function
+def selfkill(group):
+    for sprite in group:
+        sprite.selfkill()
+
+def reset_game():
+    selfkill(all_sprites)
+    selfkill(all_gifts)
+    selfkill(all_hurdles)
+    GAME['score'] = 0
+    score_count.txt = f"{GAME['score']}"
+    score_count.update()
 
 def Main_Game():
     for event in pygame.event.get():
@@ -286,6 +307,7 @@ def Main_Menu():
             if play_title.txt_rect.collidepoint(mpos):
                 GAME['animation'] = True
                 GAME['player_select'] = 'play'
+                reset_game()
             if Exit_title.txt_rect.collidepoint(mpos):
                 pygame.quit()
                 running = False
@@ -336,6 +358,7 @@ def Gameover_Menu():
             if play_again_title.txt_rect.collidepoint(mpos):
                 GAME['animation'] = True
                 GAME['player_select'] = 'play_again'
+                reset_game()
             elif main_menu_title.txt_rect.collidepoint(mpos):
                 GAME['animation'] = True
                 GAME['player_select'] = 'menu'    
@@ -378,6 +401,9 @@ def Pause_Menu():
             if resume_title.txt_rect.collidepoint(mpos):
                 GAME['animation'] = True
                 GAME['player_select'] = 'resume'
+            if restart_title.txt_rect.collidepoint(mpos):
+                GAME['animation'] = True
+                GAME['player_select'] = 'restart'
             elif main_menu_title.txt_rect.collidepoint(mpos):
                 GAME['animation'] = True
                 GAME['player_select'] = 'menu'
@@ -399,6 +425,9 @@ def Pause_Menu():
                     GAME['state'] = 'main_menu'
                     GAME['animation'] = True
                     GAME['animation_speed'] = 0
+                elif GAME['player_select'] == 'restart':
+                    reset_game()
+                    GAME['state'] = 'main_game'
     
     pause_title.txt_rect.centery -= GAME['animation_speed']
     resume_title.txt_rect.centerx += GAME['animation_speed']
