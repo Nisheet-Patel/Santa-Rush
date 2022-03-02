@@ -151,6 +151,7 @@ class Gift(pygame.sprite.Sprite):
         self.rect.bottom = 672
 
         self.speed = 5.5
+        self.collect_sound = pygame.mixer.Sound('assets\\sound\\gift_collect .wav')
     def update(self):
         if self.rect.x > -100:
             self.rect.x -= self.speed
@@ -226,18 +227,19 @@ def Main_Game():
             running = False
 
         elif event.type == ADDHURDLE:
-            # Generate hurdles
-            hurdle = Hurdle()
-            hurdle.rect.x += random.randint(0,128) 
-            all_hurdles.add(hurdle)
-            all_sprites.add(hurdle)
-            # generate Gifts
-            for pos in [[256,384],[384,512],[512,640]]:    
-                if random.random() < 0.3:
-                    gift = Gift()
-                    gift.rect.x += random.randint(pos[0],pos[1])
-                    all_sprites.add(gift)
-                    all_gifts.add(gift)
+            if GAME['state'] == 'main_game':
+                # Generate hurdles
+                hurdle = Hurdle()
+                hurdle.rect.x += random.randint(0,128) 
+                all_hurdles.add(hurdle)
+                all_sprites.add(hurdle)
+                # generate Gifts
+                for pos in [[256,384],[384,512],[512,640]]:    
+                    if random.random() < 0.3:
+                        gift = Gift()
+                        gift.rect.x += random.randint(pos[0],pos[1])
+                        all_sprites.add(gift)
+                        all_gifts.add(gift)
 
     if pygame.sprite.spritecollide(player, all_hurdles, dokill=True):
         GAME['state'] = 'gameover'
@@ -245,6 +247,7 @@ def Main_Game():
         GAME['animation_speed'] = 0
         GAME['animation'] = True
     if pygame.sprite.spritecollide(player, all_gifts, dokill=True):
+        Gift().collect_sound.play()
         Gift.collide()
 
     # Get user key pressed 
